@@ -9,7 +9,7 @@ device=$cmsis/Device/ST/STM32F1xx
 linkers=$device/Source/Templates/gcc/linker
 headers=$device/Include
 system=$device/Source/Templates
-startup=$system/gcc/startup_stm32f100xb.s
+#startup=$system/gcc/startup_stm32f100xb.s
 core=$cmsis/Include
 ldscript=STM32F100XB_FLASH.ld
 
@@ -20,7 +20,7 @@ no_linker() {
   echo ".microfur file must be present"
   echo "It contains information on what linker to use"
   echo "Example file:"
-  echo "  projectLinker=F100XB"
+  echo "  family=F100XB"
   exit 1
 }
 
@@ -28,7 +28,16 @@ get_linker () {
   if [[ -e .microfur ]]
   then
     source .microfur
-    link="STM32"$projectLinker"_FLASH.ld"
+    if [[ $family != "" ]]
+    then
+      link="STM32"${family^^}"_FLASH.ld"
+      startup=$system"/gcc/startup_stm32"${family,,}".s"
+    else
+      echo "Must specify 'family' variable in .microfur"
+      echo "Example:"
+      echo "  family=f100xb"
+      exit 1
+    fi
   else no_linker
   fi
 }
