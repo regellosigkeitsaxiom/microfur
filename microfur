@@ -5,7 +5,7 @@ me=$(dirname $dir)/etc
 cmsis=$me/Drivers/CMSIS
 
 set -e
-device=$cmsis/Device/ST/STM32F1xx
+device=$cmsis/Device/ST/STM32____
 linkers=$device/Source/Templates/gcc/linker
 headers=$device/Include
 system=$device/Source/Templates
@@ -66,7 +66,7 @@ place=$(mktemp -d)
 build () {
   get_linker
   cat $linkers/$link | sed "s/^0//g" > $place/linker
-  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$device -T $place/linker $startup $1
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$devic -T $place/linker $startup $1
   arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
 }
 
