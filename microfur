@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
-me=$(dirname $dir)
+me=$(dirname $dir)/etc
 cmsis=$me/Drivers/CMSIS
 
 set -e
@@ -16,8 +16,26 @@ ldscript=STM32F100XB_FLASH.ld
 flags="-mcpu=cortex-m3 -mthumb --specs=nosys.specs"
 includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
 
+no_linker() {
+  echo ".microfur file must be present"
+  echo "It contains information on what linker to use"
+  echo "Example file:"
+  echo "  projectLinker=F100XB"
+  exit 1
+}
+
+get_linker () {
+  if [[ -e .microfur ]]
+  then
+    source .microfur
+    link="STM32"$projectLinker"_FLASH.ld"
+  else no_linker
+  fi
+}
+
 drop_dead () {
   echo "Usage:"
+  echo "  template"
   echo "  build [<remote> [file]]"
   echo "  flash [<remote> [file]]"
   echo "  all [<remote> [file]]"
@@ -33,17 +51,12 @@ drop_dead () {
   exit 1
 }
 
-chk () {
-  if [[ $2 == "" || $2 =~ -.* ]]
-  then drop_dead "$1 требует аргумента"
-  fi
-}
-
-place=`mktemp -d`
+place=$(mktemp -d)
 
 build () {
-  cat $linkers/STM32F100XB_FLASH.ld | sed "s/^0//g" > $place/STM32F100XB_FLASH.ld
-  arm-none-eabi-gcc -o $place/main.elf $flags $includes -T $place/STM32F100XB_FLASH.ld $startup $1
+  get_linker
+  cat $linkers/$link | sed "s/^0//g" > $place/linker
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -T $place/linker $startup $1
   arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
 }
 
@@ -53,11 +66,22 @@ clean () {
 
 flash_remote () {
   scp $1 $remoteHost:firmware.bin
-  #ssh $remoteHost $stlinkCommand erase $programmerPath
+
+  ssh $remoteHost $stlinkCommand erase $programmerPath
   ssh $remoteHost $stlinkCommand write $programmerPath firmware.bin 0x8000000
   ssh $remoteHost rm firmware.bin
 }
-if [[ $1 == "build" ]]
+if [[ $1 == "template" ]]
+then
+  if [[ $# == 1 ]]
+  then q=$(mktemp -d)
+       cp -r $me/templates/. $q/
+       chmod -R u+w $q
+       cp -rn $q/. .
+       rm $q -r
+  else drop_dead
+  fi
+elif [[ $1 == "build" ]]
 then
   if [[ $# == 2 ]]
   then main=$2
@@ -96,9 +120,8 @@ then
   if [[ $remoteHost != "" ]]
   then
     echo Building here, flashing remotely
-    build main.c
-    flash_remote $file
-    ssh $remoteHost rm main.bin
+    build $file
+    flash_remote $place/main.bin
     clean
   else
     echo Building and flashing locally
