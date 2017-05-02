@@ -18,9 +18,11 @@ includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
 
 no_linker() {
   echo ".microfur file must be present"
-  echo "It contains information on what linker to use"
+  echo "It contains information for which chip to build"
   echo "Example file:"
   echo "  family=F100XB"
+  echo "  linker=F100XB"
+  echo "If linker not specified, will use upper-cased family"
   exit 1
 }
 
@@ -29,14 +31,20 @@ get_linker () {
   then
     source .microfur
     if [[ $family != "" ]]
+      if [[ $linker == "" ]]
+      then
+        linker="${family^^}"
+      fi
     then
-      link="STM32"${family^^}"_FLASH.ld"
+      link="STM32"$linker"_FLASH.ld"
       startup=$system"/gcc/startup_stm32"${family,,}".s"
       device="STM32"${family^^}
     else
       echo "Must specify 'family' variable in .microfur"
       echo "Example:"
       echo "  family=f100xb"
+      echo "Also you can specify linker:"
+      echo "  linker=F100XB"
       exit 1
     fi
   else no_linker
@@ -66,7 +74,7 @@ place=$(mktemp -d)
 build () {
   get_linker
   cat $linkers/$link | sed "s/^0//g" > $place/linker
-  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$devic -T $place/linker $startup $1
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$device -T $place/linker $startup $1
   arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
 }
 
