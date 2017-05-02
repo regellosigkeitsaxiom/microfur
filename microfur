@@ -32,6 +32,7 @@ get_linker () {
     then
       link="STM32"${family^^}"_FLASH.ld"
       startup=$system"/gcc/startup_stm32"${family,,}".s"
+      device="STM32"${family^^}
     else
       echo "Must specify 'family' variable in .microfur"
       echo "Example:"
@@ -65,7 +66,7 @@ place=$(mktemp -d)
 build () {
   get_linker
   cat $linkers/$link | sed "s/^0//g" > $place/linker
-  arm-none-eabi-gcc -o $place/main.elf $flags $includes -T $place/linker $startup $1
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$device -T $place/linker $startup $1
   arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
 }
 
