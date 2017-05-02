@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
+me=$(dirname $dir)
+cmsis=$me/Drivers/CMSIS
+
+set -e
+device=$cmsis/Device/ST/STM32F1xx
+linkers=$device/Source/Templates/gcc/linker
+headers=$device/Include
+system=$device/Source/Templates
+startup=$system/gcc/startup_stm32f100xb.s
+core=$cmsis/Include
+ldscript=STM32F100XB_FLASH.ld
+
+flags="-mcpu=cortex-m3 -mthumb --specs=nosys.specs"
+includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
+
+drop_dead () {
+  echo "Usage:"
+  echo "  build [<remote> [file]]"
+  echo "  flash [<remote> [file]]"
+  echo "  all [<remote> [file]]"
+  echo "Note: without <file> will compile main.c and flash main.bin"
+  echo "Note: <remote> is a file located in ~/.config/microfur/"
+  echo "Example remote file:"
+  echo "  programmerPath='/dev/stlinkv1_4'"
+  echo "  remoteHost='solder'"
+  echo "  stlinkCommand='~/stlink/build/Release/st-flash'"
+  echo "Note: if using stlink v2, do not specify programmerPath"
+  echo "Note: if intend to use local machine, do not specify remoteHost"
+  echo "Note: stlinkCommand is mandatory"
+  exit 1
+}
+
+chk () {
+  if [[ $2 == "" || $2 =~ -.* ]]
+  then drop_dead "$1 требует аргумента"
+  fi
+}
+
+place=`mktemp -d`
+
+build () {
+  cat $linkers/STM32F100XB_FLASH.ld | sed "s/^0//g" > $place/STM32F100XB_FLASH.ld
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -T $place/STM32F100XB_FLASH.ld $startup $1
+  arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
+}
+
+clean () {
+  rm -rf $place
+}
+
+flash_remote () {
+  scp $1 $remoteHost:firmware.bin
+  #ssh $remoteHost $stlinkCommand erase $programmerPath
+  ssh $remoteHost $stlinkCommand write $programmerPath firmware.bin 0x8000000
+  ssh $remoteHost rm firmware.bin
+}
+if [[ $1 == "build" ]]
+then
+  if [[ $# == 2 ]]
+  then main=$2
+  elif [[ $# == 1 ]]
+  then main="main.c"
+  else drop_dead
+  fi
+  echo Building locally
+  build $main
+  cp $place/main.bin "./$(echo $main | cut -f 1 -d '.').bin"
+  clean
+elif [[ $1 == "flash" ]]
+then
+  source ~/.config/microfur/$2
+  if [[ $# == 2 ]]
+  then file="main.bin"
+  elif [[ $# == 3 ]]
+  then file=$3
+  fi
+  if [[ $remoteHost != "" ]]
+  then
+    echo Flashing remotely
+    flash_remote $file
+  else
+    echo Flashing locally
+    $stlinkCommand $programmerPath $file 0x8000000
+  fi
+elif [[ $1 == "all" ]]
+then
+  source ~/.config/microfur/$2
+  if [[ $# == 2 ]]
+  then file="main.c"
+  elif [[ $# == 3 ]]
+  then file=$3
+  fi
+  if [[ $remoteHost != "" ]]
+  then
+    echo Building here, flashing remotely
+    build main.c
+    flash_remote $file
+    ssh $remoteHost rm main.bin
+    clean
+  else
+    echo Building and flashing locally
+    build $file
+    $stlinkCommand erase $programmerPath
+    $stlinkCommand write $programmerPath $place/$(echo $file | cut -f 1 -d '.').bin 0x8000000
+    clean
+  fi
+else
+  drop_dead
+fi

@@ -1,0 +1,14 @@
+*.iml
+.idea
+build
+.gradle
+psmd.gz
+.stack-work
+node_modules
+dist
+.DS_Store
+*.swp
+build-stuff
+elm-stuff
+result
+index.html
