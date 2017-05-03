@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-if [ -d ~/.config/microfur ]
+if [ -d ~/.config/microfur/remotes ]
 then :
 else
-  mkdir -p ~/.config/microfur
-  touch ~/.config/microfur/local
+  mkdir -p ~/.config/microfur/remotes
+  touch ~/.config/microfur/remotes/local
 fi
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
@@ -67,7 +67,7 @@ drop_dead () {
   echo "  flash [<remote> [file]] # (possibly over ssh) flash binary"
   echo "  all [<remote> [file]] # build, then flash"
   echo "Note: without <file> will compile 'main.c' and flash 'main.bin'"
-  echo "Note: <remote> is a file located in ~/.config/microfur/"
+  echo "Note: <remote> is a file located in ~/.config/microfur/remotes/"
   echo "Example remote file:"
   echo "  programmerPath='/dev/stlinkv1_4'"
   echo "  remoteHost='solder'"
@@ -103,7 +103,7 @@ then
   if [[ $# == 1 ]]
   then
     echo "List of possible remotes:"
-    ls -1 ~/.config/microfur
+    ls -1 ~/.config/microfur/remotes
   else drop_dead
   fi
 elif [[ $1 == "template" ]]
@@ -130,7 +130,7 @@ then
   clean
 elif [[ $1 == "flash" ]]
 then
-  source ~/.config/microfur/$2
+  source ~/.config/microfur/remotes/$2
   if [[ $# == 2 ]]
   then file="main.bin"
   elif [[ $# == 3 ]]
@@ -146,7 +146,7 @@ then
   fi
 elif [[ $1 == "all" ]]
 then
-  source ~/.config/microfur/$2
+  source ~/.config/microfur/remotes/$2
   if [[ $# == 2 ]]
   then file="main.c"
   elif [[ $# == 3 ]]
