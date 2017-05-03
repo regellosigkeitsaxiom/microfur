@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
+if [ -d ~/.config/microfur ]
+then :
+else
+  mkdir -p ~/.config/microfur
+  touch ~/.config/microfur/local
+fi
+
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
 me=$(dirname $dir)/etc
 cmsis=$me/Drivers/CMSIS
+stlinkCommand="st-flash"
 
 set -e
 device=$cmsis/Device/ST/STM32____
@@ -54,7 +62,7 @@ get_linker () {
 drop_dead () {
   echo "Usage:"
   echo "  template"
-  echo "  build [<remote> [file]]"
+  echo "  build [file]"
   echo "  flash [<remote> [file]]"
   echo "  all [<remote> [file]]"
   echo "Note: without <file> will compile main.c and flash main.bin"
