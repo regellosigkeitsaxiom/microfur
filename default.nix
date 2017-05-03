@@ -12,11 +12,11 @@ stdenv.mkDerivation rec {
   '';
   installPhase = ''
     mkdir -p $out/bin
-    mkdir -p $out/etc
+    mkdir -p $out/etc/microfur/
     cp microfur $out/bin/microfur
     chmod +x $out/bin/*
-    cp -r templates $out/etc/templates
-    cp -r Drivers $out/etc/Drivers
+    cp -r templates $out/etc/microfur/templates
+    cp -r Drivers $out/etc/microfur/Drivers
   '';
 }
 

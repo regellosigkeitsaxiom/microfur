@@ -8,7 +8,7 @@ else
 fi
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" 
-me=$(dirname $dir)/etc
+me=$(dirname $dir)/etc/microfur
 cmsis=$me/Drivers/CMSIS
 stlinkCommand="st-flash"
 
