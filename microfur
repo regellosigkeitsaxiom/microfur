@@ -19,7 +19,6 @@ headers=$device/Include
 system=$device/Source/Templates
 #startup=$system/gcc/startup_stm32f100xb.s
 core=$cmsis/Include
-ldscript=STM32F100XB_FLASH.ld
 
 flags="-mcpu=cortex-m3 -mthumb --specs=nosys.specs"
 includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
@@ -61,6 +60,7 @@ get_linker () {
 
 drop_dead () {
   echo "Usage:"
+  echo "  help {defs|m0|m3|m4|m7} # show file with defines in \$EDITOR"
   echo "  template # copy template project files here (no clobber)"
   echo "  remotes # list possible remotes"
   echo "  build [file] # compile, link and copy binary here"
@@ -104,6 +104,19 @@ then
   then
     echo "List of possible remotes:"
     ls -1 ~/.config/microfur/remotes
+  else drop_dead
+  fi
+elif [[ $1 == "help" ]]
+then
+  if [[ $2 == "defs" ]]
+  then
+    get_linker
+    $EDITOR $headers/stm32${family,,}.h
+    exit 0
+  elif [[ $2 =~ ^m.$ ]]
+  then
+    $EDITOR $core/core_cm$(printf ${2:1:1}).h
+    exit 0
   else drop_dead
   fi
 elif [[ $1 == "template" ]]
