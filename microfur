@@ -65,15 +65,15 @@ drop_dead () {
   echo "  build [file]"
   echo "  flash [<remote> [file]]"
   echo "  all [<remote> [file]]"
-  echo "Note: without <file> will compile main.c and flash main.bin"
+  echo "Note: without <file> will compile 'main.c' and flash 'main.bin'"
   echo "Note: <remote> is a file located in ~/.config/microfur/"
   echo "Example remote file:"
   echo "  programmerPath='/dev/stlinkv1_4'"
   echo "  remoteHost='solder'"
   echo "  stlinkCommand='~/stlink/build/Release/st-flash'"
-  echo "Note: if using stlink v2, do not specify programmerPath"
-  echo "Note: if intend to use local machine, do not specify remoteHost"
-  echo "Note: stlinkCommand is mandatory"
+  echo "Note: if using stlink v2, do not specify 'programmerPath'"
+  echo "Note: if intend to use local machine, do not specify 'remoteHost'"
+  echo "Note: stlinkCommand defaults to 'stlink'"
   exit 1
 }
 
