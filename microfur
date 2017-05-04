@@ -17,11 +17,7 @@ device=$cmsis/Device/ST/STM32____
 linkers=$device/Source/Templates/gcc/linker
 headers=$device/Include
 system=$device/Source/Templates
-#startup=$system/gcc/startup_stm32f100xb.s
 core=$cmsis/Include
-
-flags="-mcpu=cortex-m3 -mthumb --specs=nosys.specs"
-includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
 
 no_linker() {
   echo ".microfur file must be present"
@@ -33,25 +29,40 @@ no_linker() {
   exit 1
 }
 
+get_cortex () {
+  case ${family:1:1} in
+    '0') cortex="m0";;
+    '1') cortex="m3";;
+    '2') cortex="m3";;
+    '3') cortex="m4";;
+    '4') cortex="m4";;
+    '7') cortex="m4";;
+    *)
+      echo "Can't deduce cortex core from MCU family :("
+      exit 1
+  esac
+
+}
+
 get_linker () {
   if [[ -e .microfur ]]
   then
     source .microfur
     if [[ $family != "" ]]
+    then
       if [[ $linker == "" ]]
       then
         linker="${family^^}"
       fi
-    then
       link="STM32"$linker"_FLASH.ld"
       startup=$system"/gcc/startup_stm32"${family,,}".s"
-      device="STM32"${family^^}
+      dev="STM32"${family^^}
     else
       echo "Must specify 'family' variable in .microfur"
       echo "Example:"
       echo "  family=f100xb"
       echo "Also you can specify linker:"
-      echo "  linker=F100XB"
+      echo "  linker=L476RGTx"
       exit 1
     fi
   else no_linker
@@ -82,8 +93,11 @@ place=$(mktemp -d)
 
 build () {
   get_linker
+  get_cortex
+  flags="-mcpu=cortex-$cortex -mthumb --specs=nosys.specs"
+  includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
   cat $linkers/$link | sed "s/^0//g" > $place/linker
-  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$device -T $place/linker $startup $1
+  arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$dev -T $place/linker $startup $1
   arm-none-eabi-objcopy -O binary $place/main.elf $place/main.bin
 }
 
@@ -94,8 +108,8 @@ clean () {
 flash_remote () {
   scp $1 $remoteHost:firmware.bin
 
-  ssh $remoteHost $stlinkCommand erase $programmerPath
-  ssh $remoteHost $stlinkCommand write $programmerPath firmware.bin 0x8000000
+  #ssh $remoteHost $stlinkCommand erase $programmerPath
+  ssh $remoteHost $stlinkCommand --reset write $programmerPath firmware.bin 0x8000000
   ssh $remoteHost rm firmware.bin
 }
 if [[ $1 == "remotes" ]]
@@ -155,7 +169,7 @@ then
     flash_remote $file
   else
     echo Flashing locally
-    $stlinkCommand $programmerPath $file 0x8000000
+    $stlinkCommand write $programmerPath $file 0x8000000
   fi
 elif [[ $1 == "all" ]]
 then
