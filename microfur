@@ -94,7 +94,7 @@ place=$(mktemp -d)
 build () {
   get_linker
   get_cortex
-  flags="-mcpu=cortex-$cortex -mthumb --specs=nosys.specs"
+  flags="-mcpu=cortex-$cortex -mthumb --specs=nosys.specs -Wl,--gc-sections"
   includes="-I$cmsis -I$device -I$headers -I$system -I$linkers -I$core"
   cat $linkers/$link | sed "s/^0//g" > $place/linker
   arm-none-eabi-gcc -o $place/main.elf $flags $includes -D$dev -T $place/linker $startup $1
