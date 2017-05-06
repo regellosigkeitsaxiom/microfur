@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
     mkdir -p $out/etc/microfur/
     cp microfur $out/bin/microfur
     chmod +x $out/bin/*
-    cp -r templates Drivers $out/etc/microfur/
+    cp -r Documentation templates Drivers $out/etc/microfur/
   '';
 }
 
