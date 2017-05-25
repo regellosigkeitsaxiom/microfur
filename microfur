@@ -30,13 +30,15 @@ no_linker() {
 }
 
 get_cortex () {
-  case ${family:1:1} in
-    '0') cortex="m0";;
-    '1') cortex="m3";;
-    '2') cortex="m3";;
-    '3') cortex="m4";;
-    '4') cortex="m4";;
-    '7') cortex="m4";;
+  case ${family:0:2} in
+    'f0') cortex="m0";;
+    'l0') cortex="m0plus";;
+    'f1') cortex="m3";;
+    'f2') cortex="m3";;
+    'f3') cortex="m4";;
+    'f4') cortex="m4";;
+    'l4') cortex="m4";;
+    'f7') cortex="m4";;
     *)
       echo "Can't deduce cortex core from MCU family :("
       exit 1
@@ -71,7 +73,7 @@ get_linker () {
 
 drop_dead () {
   echo "Usage:"
-  echo "  help {defs|m0|m3|m4|m7} # show file with defines in \$EDITOR"
+  echo "  help {defs|m0|m0plus|m3|m4|m7} # show file with defines in \$EDITOR"
   echo "  template # copy template project files here (no clobber)"
   echo "  remotes # list possible remotes"
   echo "  build [file] # compile, link and copy binary here"
@@ -137,9 +139,9 @@ then
     get_linker
     $EDITOR $headers/stm32${family,,}.h
     exit 0
-  elif [[ $2 =~ ^m.$ ]]
+  elif [[ $2 =~ ^m.(plus)?$ ]]
   then
-    $EDITOR $core/core_cm$(printf ${2:1:1}).h
+    $EDITOR $core/core_c$2.h
     exit 0
   else drop_dead
   fi
