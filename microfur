@@ -58,7 +58,7 @@ get_linker () {
       fi
       link="STM32"$linker"_FLASH.ld"
       startup=$system"/gcc/startup_stm32"${family,,}".s"
-      dev="STM32"${family^^}
+      dev=$(echo "STM32"${family^^} | sed -e "s/X/x/")
     else
       echo "Must specify 'family' variable in .microfur"
       echo "Example:"
@@ -73,7 +73,7 @@ get_linker () {
 
 drop_dead () {
   echo "Usage:"
-  echo "  help {defs|m0|m0plus|m3|m4|m7} # show file with defines in \$EDITOR"
+  echo "  help {defs|ref|data|m0|m0plus|m3|m4|m7} # show file with defines in \$EDITOR"
   echo "  template # copy template project files here (no clobber)"
   echo "  remotes # list possible remotes"
   echo "  build [file] # compile, link and copy binary here"
