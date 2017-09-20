@@ -1,44 +1,41 @@
-#include <stm32f100xb.h>
-#include <core_cm3.h>
+#include <stm32l432xx.h>
+#include <core_cm4.h>
 #include "system.c"
+//#include "timers.c"
+//#include "uart.c"
+//#include "adc.c"
 
-// Эта функция умирает, если включить -O
-void wait (int d) {
-  int x = d*1000;
+void badDelay ( uint32_t x ) {
   while (x--);
 }
 
-void blinks( int x ) {
-  while (1) 
-  {     
-    wait(24 * x );
-    GPIOC->BSRR = GPIO_BSRR_BR8;    // Погасили синий
-    GPIOC->BSRR = GPIO_BSRR_BS9;  // Зажгли зелёный
-    wait(24 * x );
-    GPIOC->BSRR = GPIO_BSRR_BR9;        // Погасили зелёный
-    GPIOC->BSRR = GPIO_BSRR_BS8;  // Зажгли синий
-  }
-}
+void initLeds(void) {
+  RCC -> AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
 
-void enableLEDs() {
-  RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
-
-  GPIOC->CRH &= ~GPIO_CRH_CNF8;
-  GPIOC->CRH |= GPIO_CRH_MODE8_0;
-  GPIOC->BSRR |= GPIO_BSRR_BR8;
-
-  GPIOC->CRH &= ~GPIO_CRH_CNF9;
-  GPIOC->CRH |= GPIO_CRH_MODE9_0;
-  GPIOC->BSRR |= GPIO_BSRR_BR9;
-}
-
-void setup (void) {
-  setClock_24_HSE();
-  enableLEDs();
+  GPIOB -> MODER &= ~GPIO_MODER_MODE3_Msk;
+  GPIOB -> MODER |= ( 0b01 << GPIO_MODER_MODE3_Pos);
+  GPIOB -> OTYPER &= ~GPIO_OTYPER_OT_3;
+  GPIOB -> PUPDR &= ~GPIO_PUPDR_PUPD3_Msk;
 }
 
 int main(void)
 {
-  setup();
-  blinks( 40 );
+  initLeds();
+  //initDelay();
+  //initPWM();
+  //initUART();
+  //initADC();
+  //GPIOB -> ODR ^= GPIO_ODR_OD3;
+  //GPIOB -> ODR &= ~GPIO_ODR_OD3;
+  while (1)
+  {
+      badDelay(1e5);
+      GPIOB -> ODR ^= GPIO_ODR_OD3;
+      //while ((USART2 -> ISR & USART_ISR_TXE ) == 0 );
+      //USART2 -> TDR = '*';
+      //GPIOA -> ODR ^= GPIO_ODR_OD0;
+      //sendline ("value = ");
+      //sendnumber ( tc1 ());
+      //sendline ("\r\n");
+  }
 }

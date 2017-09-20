@@ -1,1 +1,2 @@
-family=F100xB
+family="l432xx"
+linker="L432KCUx"
