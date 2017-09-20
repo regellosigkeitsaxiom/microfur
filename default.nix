@@ -5,7 +5,7 @@ with import <nixpkgs> {};
 #f = { stdenv, pkgs }: stdenv.mkDerivation rec {
 stdenv.mkDerivation rec {
   src = ./.;
-  version = "1.0.0.0";
+  version = "1.0.0.1";
   name = "microfur-${version}";
   buildInputs = with pkgs; [ openssh stlink gcc-arm-embedded bash ];
   buildPhase = ''
