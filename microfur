@@ -166,6 +166,7 @@ then
   echo Building locally
   build $main
   cp $place/main.bin "./$(echo $main | cut -f 1 -d '.').bin"
+  cp $place/main.elf "./$(echo $main | cut -f 1 -d '.').elf"
   clean
 elif [[ $1 == "flash" ]]
 then
