@@ -7,9 +7,9 @@ stdenv.mkDerivation rec {
   src = ./.;
   version = "1.0.1.1";
   name = "microfur-${version}";
-  buildInputs = with pkgs; [ openssh stlink gcc-arm-embedded bash ];
-  buildPhase = ''
-  '';
+  #buildInputs = with pkgs; [ openssh stlink gcc-arm-embedded bash ];
+  propagatedBuildInputs = with pkgs; [ openssh stlink gcc-arm-embedded bash ];
+  buildPhase = "";
   installPhase = ''
     mkdir -p $out/bin
     mkdir -p $out/etc/microfur/
